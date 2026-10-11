@@ -1,4 +1,5 @@
 .terraform/
 *.tfstate
 *.tfstate.*
-lambda.zip
+lambda.zip*.tfplan
+*.tfplan
