@@ -12,3 +12,8 @@ variable "fis_bucket_arn" {
   description = "ARN of the S3 bucket where AWS FIS writes fault configurations for the Lambda extension to read."
   type        = string
 }
+
+variable "alerts_email" {
+  description = "Email address to receive alerts from the SNS topic."
+  type        = string
+}

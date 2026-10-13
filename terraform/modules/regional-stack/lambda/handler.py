@@ -60,11 +60,32 @@ def deep_health():
         if not item or item["checked_at"]["S"] != now:
             return respond(503, {"region": REGION, "healthy": False, "reason": "read did not return the write"})
         lag = replication_lag(float(now))
+        publish_staleness(lag)
     except Exception as e:  # any DynamoDB problem means this region is not healthy
         return respond(503, {"region": REGION, "healthy": False, "reason": type(e).__name__})
     if lag > MAX_STALENESS_SECONDS:
         return respond(503, {"region": REGION, "healthy": False, "reason": "stale data", "lag_seconds": round(lag)})
     return respond(200, {"region": REGION, "healthy": True, "lag_seconds": round(lag)})
+
+
+def publish_staleness(lag):
+    """Publish StaleSeconds as a CloudWatch metric via Embedded Metric Format.
+
+    Printing this JSON to the log is enough: CloudWatch Logs turns it into a
+    metric, with no extra API call that could slow down the health check.
+    """
+    print(json.dumps({
+        "_aws": {
+            "Timestamp": int(time.time() * 1000),
+            "CloudWatchMetrics": [{
+                "Namespace": "MultiRegion",
+                "Dimensions": [["Region"]],
+                "Metrics": [{"Name": "StaleSeconds", "Unit": "Seconds"}],
+            }],
+        },
+        "Region": REGION,
+        "StaleSeconds": round(lag, 1),
+    }))
 
 
 def replication_lag(now):

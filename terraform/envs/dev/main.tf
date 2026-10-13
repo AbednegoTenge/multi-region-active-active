@@ -19,6 +19,7 @@ module "region_use1" {
   vpc_cidr = "10.10.0.0/16"
   table_name = module.dynamodb.dynamodb_name
   fis_bucket_arn = aws_s3_bucket.fis_bucket.arn
+  alerts_email = var.alerts_email
 }
 
 module "region_usw2" {
@@ -27,6 +28,7 @@ module "region_usw2" {
   vpc_cidr = "10.20.0.0/16"
   table_name = module.dynamodb.dynamodb_name
   fis_bucket_arn = aws_s3_bucket.fis_bucket.arn
+  alerts_email = var.alerts_email
 }
 
 module "region_euw1" {
@@ -35,4 +37,5 @@ module "region_euw1" {
   vpc_cidr = "10.30.0.0/16"
   table_name = module.dynamodb.dynamodb_name
   fis_bucket_arn = aws_s3_bucket.fis_bucket.arn
+  alerts_email = var.alerts_email
 }
