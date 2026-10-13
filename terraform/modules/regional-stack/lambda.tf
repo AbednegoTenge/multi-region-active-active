@@ -17,6 +17,7 @@ data "aws_iam_policy_document" "assume_role" {
 resource "aws_iam_role" "lambda" {
   name               = "${local.region}-lambda-execution-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  tags               = local.app_tags
 }
 
 resource "aws_iam_role_policy_attachment" "lambda" {
@@ -35,6 +36,7 @@ resource "aws_iam_role_policy" "lambda" {
        "Action": [
          "dynamodb:PutItem",
          "dynamodb:GetItem",
+         "dynamodb:BatchGetItem",
        ],
        "Effect": "Allow",
        "Resource": "arn:aws:dynamodb:${local.region}:*:table/${var.table_name}"
@@ -50,10 +52,17 @@ resource "aws_lambda_function" "this" {
   runtime       = "python3.12"
   timeout       = 5
   filename      = data.archive_file.lambda.output_path
+  tags          = local.app_tags
 
   source_code_hash = data.archive_file.lambda.output_base64sha256
+  layers           = [data.aws_ssm_parameter.fis_layer.insecure_value]
   environment {
-    variables = { TABLE_NAME = var.table_name }
+    variables = {
+      TABLE_NAME                     = var.table_name
+      AWS_LAMBDA_EXEC_WRAPPER        = "/opt/aws-fis/bootstrap"
+      AWS_FIS_CONFIGURATION_LOCATION = local.fis_config_location
+      AWS_FIS_SLOW_POLL_INTERVAL_SECONDS = "5"
+    }
   }
 }
 

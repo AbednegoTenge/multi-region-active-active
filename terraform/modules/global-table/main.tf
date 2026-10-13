@@ -24,6 +24,7 @@ resource "aws_dynamodb_table" "this" {
     content {
       region_name = replica.value
       point_in_time_recovery = true
+      propagate_tags         = true
     }
   }
 

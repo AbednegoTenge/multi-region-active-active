@@ -6,17 +6,19 @@ resource "aws_lb" "this" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
   subnets            = aws_subnet.subnet[*].id
+  tags               = local.network_tags
 }
 
 resource "aws_lb_target_group" "this" {
   name     = "${local.region}-tg"
   target_type = "lambda"
+  tags        = local.network_tags
 
   health_check {
     enabled = true
     path                = "/health/deep"
-    interval            = 10
-    timeout             = 5
+    interval            = 5
+    timeout             = 2
     healthy_threshold   = 2
     unhealthy_threshold = 2
     matcher             = "200-299"

@@ -7,3 +7,8 @@ variable "table_name" {
   description = "The name of the DynamoDB table to be used by the Lambda function."
   type        = string
 }
+
+variable "fis_bucket_arn" {
+  description = "ARN of the S3 bucket where AWS FIS writes fault configurations for the Lambda extension to read."
+  type        = string
+}

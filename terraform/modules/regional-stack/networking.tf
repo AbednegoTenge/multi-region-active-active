@@ -4,6 +4,11 @@ data "aws_region" "current" {}
 
 locals {
   region = data.aws_region.current.region
+
+  # ChaosTarget marks resources AWS FIS may break; Layer lets an experiment pick app, data or network.
+  chaos_tags   = { ChaosTarget = "true", Region = local.region }
+  network_tags = merge(local.chaos_tags, { Layer = "network" })
+  app_tags     = merge(local.chaos_tags, { Layer = "app" })
 }
 
 data "aws_availability_zones" "available" {
@@ -12,18 +17,18 @@ data "aws_availability_zones" "available" {
 
 resource "aws_vpc" "this" {
   cidr_block = var.vpc_cidr
-  tags = {
+  tags = merge(local.network_tags, {
     Name = "${local.region}-vpc"
-  }
+  })
 
 }
 
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.this.id
-  tags = {
+  tags = merge(local.network_tags, {
     Name = "${local.region}-igw"
-  }
+  })
 }
 
 
@@ -33,6 +38,7 @@ resource "aws_route_table" "rt" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
+  tags = merge(local.network_tags, { Name = "${local.region}-rt" })
 }
 
 resource "aws_subnet" "subnet" {
@@ -41,9 +47,9 @@ resource "aws_subnet" "subnet" {
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  tags = {
+  tags = merge(local.network_tags, {
     Name = "${local.region}-subnet-${count.index}"
-  }
+  })
 }
 
 
@@ -71,4 +77,5 @@ resource "aws_security_group" "lb_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  tags = merge(local.network_tags, { Name = "${local.region}-lb-sg" })
 }
