@@ -3,3 +3,4 @@
 *.tfstate.*
 lambda.zip
 *.tfplan
+*.zip
