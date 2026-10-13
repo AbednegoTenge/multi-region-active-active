@@ -145,7 +145,23 @@ FIS action timestamps plus per-minute Lambda and ALB metrics broke one 80s failo
 
 ## Cost and teardown
 
-Roughly $0.09/hour while running (3 ALBs plus Global Accelerator; Lambda, DynamoDB and alarms are near zero at this traffic). FIS costs about $0.10 per action-minute during drills.
+Roughly **$100/month (~$0.14/hour)** while running. These are estimates from AWS on-demand list prices; check Cost Explorer filtered by the `Project` tag for actual spend.
+
+| Item | Per month | Why |
+|---|---|---|
+| 3 Application Load Balancers | ~$49 | $0.0225/hr each, running 24/7 |
+| Public IPv4 addresses | ~$22 | Each ALB holds 2 public IPs at $0.005/hr each |
+| Global Accelerator | ~$18 | $0.025/hr fixed fee |
+| DynamoDB (on-demand) | ~$7 | Health checks write ~3M times a month, and each write is replicated to 2 more regions |
+| CloudWatch | ~$3 | 6 alarms, 3 custom metrics, Lambda logs |
+| Lambda, S3, SNS | ~$1 | Mostly covered by the free tier |
+| **Total** | **~$100** | |
+
+FIS is billed only during drills, at $0.10 per action-minute: about $1.50 for a 5-minute full-outage drill (3 actions) and $4.50 for the full 15 minutes.
+
+About $90 of the total is fixed hourly charges (ALBs, IPs, Global Accelerator), so it costs the same with zero traffic. That is the real price of active-active: you pay for every region all the time.
+
+Tear it down when you're done (the state bucket remains, at a few cents a month):
 
 ```bash
 cd terraform/envs/dev && terraform destroy
