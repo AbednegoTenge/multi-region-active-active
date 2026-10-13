@@ -6,22 +6,7 @@ Every region serves live traffic and accepts writes. If a region fails, users ar
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    U[Users] --> GA[Global Accelerator<br/>2 static anycast IPs]
-    GA --> A1[ALB us-east-1]
-    GA --> A2[ALB us-west-2]
-    GA --> A3[ALB eu-west-1]
-    A1 --> L1[Lambda]
-    A2 --> L2[Lambda]
-    A3 --> L3[Lambda]
-    L1 --> D1[(DynamoDB replica)]
-    L2 --> D2[(DynamoDB replica)]
-    L3 --> D3[(DynamoDB replica)]
-    D1 <-. Global Table replication .-> D2
-    D2 <-. Global Table replication .-> D3
-    D1 <-. Global Table replication .-> D3
-```
+![Multi-region active-active architecture on AWS](docs/architecture.png)
 
 | Layer | Service | Role |
 |---|---|---|
